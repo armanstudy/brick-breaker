@@ -72,6 +72,11 @@ export class Game {
       this.muteButton.addEventListener("click", () => this.toggleMute());
     }
 
+    this.hudScale = 1;
+    this.updateHudScale();
+    window.addEventListener("resize", () => this.updateHudScale());
+    window.addEventListener("orientationchange", () => this.updateHudScale());
+
     this.loop = this.loop.bind(this);
   }
 
@@ -80,6 +85,15 @@ export class Game {
     canvas.width = CANVAS_WIDTH * dpr;
     canvas.height = CANVAS_HEIGHT * dpr;
     this.ctx.scale(dpr, dpr);
+  }
+
+  // وقتی canvas روی موبایل/تبلت کوچک‌تر از اندازه منطقی‌اش نمایش داده می‌شود،
+  // این ضریب باعث می‌شود متن HUD به همان اندازه فیزیکی (نه نسبی) خوانا بماند.
+  updateHudScale() {
+    const displayWidth = this.canvas.getBoundingClientRect().width;
+    if (displayWidth > 0) {
+      this.hudScale = Math.min(CANVAS_WIDTH / displayWidth, 2.5);
+    }
   }
 
   handleLaunchInput() {
@@ -254,8 +268,8 @@ export class Game {
       const result = CollisionManager.ballBricks(ball, this.bricks);
       if (result) {
         const { brick, destroyed } = result;
-        const color = brick.unbreakable ? "#adb5bd" : brick.colors[brick.colors.length - 1];
-        this.particles.burst(brick.x + brick.width / 2, brick.y + brick.height / 2, color, 10);
+        const [particleColor] = brick.getCurrentColors();
+        this.particles.burst(brick.x + brick.width / 2, brick.y + brick.height / 2, particleColor, 10);
 
         if (brick.unbreakable) {
           this.audio.brickClank();
@@ -322,8 +336,9 @@ export class Game {
   }
 
   drawHud(ctx) {
+    const s = this.hudScale;
     ctx.fillStyle = "#f1faee";
-    ctx.font = "18px sans-serif";
+    ctx.font = `${18 * s}px sans-serif`;
     ctx.textAlign = "left";
     ctx.fillText(`امتیاز: ${this.score}`, 20, 30);
 
@@ -331,7 +346,7 @@ export class Game {
     ctx.fillText(`جان: ${this.lives}`, CANVAS_WIDTH - 20, 30);
 
     ctx.textAlign = "center";
-    ctx.font = "14px sans-serif";
+    ctx.font = `${14 * s}px sans-serif`;
     ctx.fillText(`مرحله ${this.currentLevel + 1} از ${TOTAL_LEVELS}`, CANVAS_WIDTH / 2, 26);
 
     const effects = [];
@@ -343,7 +358,7 @@ export class Game {
     }
     if (effects.length > 0) {
       ctx.fillStyle = "#ffd166";
-      ctx.font = "13px sans-serif";
+      ctx.font = `${13 * s}px sans-serif`;
       ctx.fillText(effects.join("   |   "), CANVAS_WIDTH / 2, 46);
     }
   }
@@ -352,8 +367,9 @@ export class Game {
     const lines = this.getOverlayLines();
     if (!lines) return;
 
-    const lineHeight = 30;
-    const padding = 20;
+    const s = this.hudScale;
+    const lineHeight = 30 * s;
+    const padding = 20 * s;
     const boxHeight = lines.length * lineHeight + padding * 2;
     const boxY = CANVAS_HEIGHT / 2 - boxHeight / 2;
 
@@ -362,10 +378,21 @@ export class Game {
     ctx.fillRect(0, boxY, CANVAS_WIDTH, boxHeight);
 
     ctx.textAlign = "center";
+    const maxTextWidth = CANVAS_WIDTH - 40;
     lines.forEach((line, i) => {
+      let fontSize = (line.size || 20) * s;
+      const fontWeight = line.bold ? "bold " : "";
+      ctx.font = `${fontWeight}${fontSize}px sans-serif`;
+
+      // اگر متن (مثلاً راهنمای کنترل‌ها در حالت موبایل) از عرض canvas بزرگ‌تر شد، کوچکش کن
+      const width = ctx.measureText(line.text).width;
+      if (width > maxTextWidth) {
+        fontSize *= maxTextWidth / width;
+        ctx.font = `${fontWeight}${fontSize}px sans-serif`;
+      }
+
       ctx.fillStyle = line.color || "#ffffff";
-      ctx.font = `${line.bold ? "bold " : ""}${line.size || 20}px sans-serif`;
-      ctx.fillText(line.text, CANVAS_WIDTH / 2, boxY + padding + i * lineHeight + lineHeight / 2 + 6);
+      ctx.fillText(line.text, CANVAS_WIDTH / 2, boxY + padding + i * lineHeight + lineHeight / 2 + 6 * s);
     });
     ctx.restore();
   }

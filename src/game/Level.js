@@ -1,5 +1,5 @@
 import { Brick } from "./Brick.js";
-import { LEVELS, BRICK_DEFS, TOTAL_LEVELS } from "./levels.js";
+import { LEVELS, BRICK_DEFS, ROW_COLOR_PALETTE, TOTAL_LEVELS } from "./levels.js";
 import { BRICK_HEIGHT, BRICK_PADDING, BRICK_OFFSET_TOP, BRICK_OFFSET_LEFT } from "./constants.js";
 
 export { TOTAL_LEVELS };
@@ -15,19 +15,26 @@ export function createBricksForLevel(levelIndex, canvasWidth) {
   rows.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell === 0) return;
-      const def = BRICK_DEFS[cell];
-      if (!def) return;
+
+      let hits;
+      let unbreakable = false;
+      let colors;
+
+      if (cell === 1) {
+        hits = 1;
+        colors = [ROW_COLOR_PALETTE[rowIndex % ROW_COLOR_PALETTE.length]];
+      } else {
+        const def = BRICK_DEFS[cell];
+        if (!def) return;
+        hits = def.hits;
+        unbreakable = !!def.unbreakable;
+        colors = def.colors;
+      }
 
       const x = BRICK_OFFSET_LEFT + colIndex * (brickWidth + BRICK_PADDING);
       const y = BRICK_OFFSET_TOP + rowIndex * (BRICK_HEIGHT + BRICK_PADDING);
 
-      bricks.push(
-        new Brick(x, y, brickWidth, BRICK_HEIGHT, {
-          hits: def.hits,
-          unbreakable: !!def.unbreakable,
-          colors: def.colors,
-        })
-      );
+      bricks.push(new Brick(x, y, brickWidth, BRICK_HEIGHT, { hits, unbreakable, colors }));
     });
   });
 
