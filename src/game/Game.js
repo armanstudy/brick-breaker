@@ -40,6 +40,7 @@ export class Game {
     this.audio = new AudioManager();
     this.particles = new ParticleSystem();
     this.highScore = getHighScore();
+    this.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
     this.currentLevel = 0;
     this.score = 0;
@@ -397,23 +398,37 @@ export class Game {
     ctx.restore();
   }
 
+  // روی موبایل/تبلت به‌جای اشاره به کلیک و Space، عبارت مخصوص لمس نشان داده می‌شود
+  get tapOrClickHint() {
+    return this.isTouchDevice ? "صفحه را لمس کنید" : "کلیک کنید یا Space را بزنید";
+  }
+
   getOverlayLines() {
     switch (this.state) {
-      case STATE.MENU:
+      case STATE.MENU: {
+        const controlsLine = this.isTouchDevice
+          ? "حرکت پدال: کشیدن انگشت روی صفحه  |  توقف و صدا: دکمه‌های بالای صفحه"
+          : "حرکت پدال: کلیدهای چپ/راست یا موس  |  توقف: P  |  بی‌صدا: M";
         return [
           { text: "آجرشکن", size: 30, bold: true, color: "#ffd166" },
-          { text: "برای شروع کلیک کنید یا Space را بزنید", size: 18 },
-          { text: "حرکت: کلیدهای چپ/راست یا موس  |  پرتاب: کلیک/Space  |  مکث: P  |  بی‌صدا: M", size: 13 },
+          { text: `برای شروع بازی ${this.tapOrClickHint}`, size: 18 },
+          { text: controlsLine, size: 13 },
           { text: `بهترین امتیاز: ${this.highScore}`, size: 15, color: "#f1faee" },
         ];
+      }
       case STATE.READY:
-        return [{ text: "برای پرتاب توپ کلیک کنید یا Space را بزنید", size: 20 }];
+        return [{ text: `برای پرتاب توپ ${this.tapOrClickHint}`, size: 20 }];
       case STATE.PAUSED:
-        return [{ text: "مکث شده - برای ادامه P را بزنید", size: 20 }];
+        return [
+          {
+            text: this.isTouchDevice ? "بازی مکث شده - دکمه ادامه را بزنید" : "بازی مکث شده - برای ادامه P را بزنید",
+            size: 20,
+          },
+        ];
       case STATE.LEVEL_COMPLETE:
         return [
           { text: `مرحله ${this.currentLevel + 1} تمام شد!`, size: 24, bold: true, color: "#ffd166" },
-          { text: "برای ادامه کلیک کنید یا Space را بزنید", size: 16 },
+          { text: `برای رفتن به مرحله بعد ${this.tapOrClickHint}`, size: 16 },
         ];
       case STATE.GAME_OVER:
         return [
@@ -424,7 +439,7 @@ export class Game {
             size: 15,
             color: "#ffd166",
           },
-          { text: "برای شروع دوباره کلیک کنید", size: 15 },
+          { text: `برای شروع دوباره ${this.tapOrClickHint}`, size: 15 },
         ];
       case STATE.WIN:
         return [
@@ -435,7 +450,7 @@ export class Game {
             size: 15,
             color: "#ffd166",
           },
-          { text: "برای بازی دوباره کلیک کنید", size: 15 },
+          { text: `برای شروع بازی جدید ${this.tapOrClickHint}`, size: 15 },
         ];
       default:
         return null;

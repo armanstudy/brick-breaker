@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Brick Breaker</title>
   <link rel="stylesheet" href="src/styles/style.css" />
+  <script>
+    // برخی مرورگرهای موبایل (به‌خصوص WebView های داخل اپ) واحد vh را طوری حساب می‌کنند
+    // که نوار آدرس را هم حساب می‌کند و باعث فاصله خالی می‌شود؛ این مقدار واقعی را جایگزین می‌کند.
+    function setViewportHeightUnit() {
+      document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
+    }
+    setViewportHeightUnit();
+    window.addEventListener("resize", setViewportHeightUnit);
+    window.addEventListener("orientationchange", setViewportHeightUnit);
+  </script>
 </head>
 <body>
   <div class="game-container">
