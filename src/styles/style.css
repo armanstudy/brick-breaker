@@ -22,14 +22,22 @@ body {
 }
 
 .game-container {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   /* عرض بر اساس هرکدام که کوچک‌تر است تعیین می‌شود: عرض صفحه، سقف ۸۰۰ پیکسل،
-     یا معادل ارتفاع صفحه (برای این‌که در حالت landscape موبایل هم جا شود) */
-  width: min(800px, 95vw, calc((var(--vh, 1vh) * 100 - 32px) * 4 / 3));
+     یا معادل ارتفاع صفحه منهای ارتفاع نوار دکمه‌ها (برای این‌که در حالت landscape موبایل هم جا شود) */
+  width: min(800px, 95vw, calc((var(--vh, 1vh) * 100 - 32px - 52px) * 4 / 3));
   border: 4px solid #457b9d;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: #12263f;
 }
 
 canvas {
@@ -39,14 +47,6 @@ canvas {
   background: #0d1b2a;
   cursor: crosshair;
   touch-action: none;
-}
-
-.hud-buttons {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  gap: 8px;
 }
 
 .hud-button {
@@ -69,7 +69,21 @@ canvas {
   background: #3a6a8a;
 }
 
-@media (max-width: 480px) {
+/* روی موبایل و تبلت (صفحه‌های لمسی یا باریک)، قاب تزئینی حذف می‌شود تا بازی
+   لبه‌به‌لبه بیشترین فضای ممکن صفحه را پر کند */
+@media (max-width: 1024px), (pointer: coarse) {
+  body {
+    padding: 0;
+  }
+
+  .game-container {
+    width: 100vw;
+    width: min(100vw, calc((var(--vh, 1vh) * 100 - 44px) * 4 / 3));
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   .hud-button {
     padding: 6px 10px;
     font-size: 12px;
